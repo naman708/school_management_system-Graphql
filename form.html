@@ -1,0 +1,195 @@
+<!-- views/form.html -->
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css"
+        integrity="sha384-/Y6pD6FV/Vv2HJnA6t+vslU6fwYXjCFtcEpHbNJ0lyAFsXTsjBbfaDjzALeQsN6M" crossorigin="anonymous">
+    <title>school management system</title>
+</head>
+
+<body>
+    <div class="container">
+        <!-- <a href="display.html"></a> -->
+        <h1 class="title">School Management System</h1>
+        <button type="submit" class="btn btn-dark" id="btn1" onclick="showStudents()">Show Students</button>
+        <button type="submit" class="btn btn-dark" id="btn2" onclick="AddStudents()">Add Students</button>
+        <button type="submit" class="btn btn-dark" id="btn3" onclick="fetchStudentsByClass('Pre-Nursery')">Pre-Nursery</button>
+        <button type="submit" class="btn btn-dark" id="btn4" onclick="fetchStudentsByClass('Nursery')">Nursery</button>
+        <button type="submit" class="btn btn-dark" id="btn5" onclick="fetchStudentsByClass('LKG')">LKG</button>
+        <button type="submit" class="btn btn-dark" id="btn6" onclick="fetchStudentsByClass('UKG')">UKG</button>
+
+
+
+
+
+
+        <form method="POST" id="forminfo">
+            <label for="name" class="form-label">Student name</label>
+            <input type="text" id="name" name="name" class="form-control" required><br>
+            <label for="class" class="form-label">class</label>
+            <input type="text" id="class" name="class" class="form-control" required><br>
+            <label for="phno" class="form-label">Parents number</label>
+            <input type="text" id="phno" name="phno" class="form-control" required><br>
+
+            <label for="address" class="form-label">Address</label>
+            <textarea id="address" name="address" rows="4" class="form-control" required></textarea><br>
+
+
+            <button type="submit" class="btn btn-dark">Submit</button>
+        </form>
+        <ul id="applist" class="list-group">
+
+
+        </ul>
+    </div>
+
+</body>
+
+</html>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.19.0/axios.min.js"></script>
+<script>
+    const form = document.getElementById('forminfo');
+    const userlist = document.getElementById('applist');
+
+    function showStudents(){
+         userlist.innerHTML = '';
+
+
+        const form = document.getElementById('forminfo');
+        const btn1 = document.getElementById('btn1');
+        const btn2 = document.getElementById('btn2');
+         const btn3 = document.getElementById('btn3');
+        const btn4 = document.getElementById('btn4');
+        const btn5 = document.getElementById('btn5');
+        const btn6 = document.getElementById('btn6');
+      
+        btn3.style.display = 'block';
+        btn4.style.display = 'block';
+        btn5.style.display = 'block';
+        btn6.style.display = 'block';
+
+
+        form.style.display = 'none';
+        btn1.style.display='none';
+        btn2.style.display = 'block';
+
+    }
+    function AddStudents() {
+            userlist.innerHTML = '';
+
+            const form = document.getElementById('forminfo');
+            const btn2 = document.getElementById('btn2');
+            const btn3 = document.getElementById('btn3');
+            const btn4 = document.getElementById('btn4');
+            const btn5 = document.getElementById('btn5');
+            const btn6 = document.getElementById('btn6');
+
+
+            form.style.display = 'block';
+            btn1.style.display = 'block';
+            btn2.style.display = 'none';
+            btn3.style.display = 'none';
+            btn4.style.display = 'none';
+            btn5.style.display = 'none';
+            btn6.style.display = 'none';
+
+        }
+
+
+    form.addEventListener('submit', onsubmit)
+    function onsubmit(e) {
+        e.preventDefault();
+        const I1 = document.getElementById('name');
+        const I2 = document.getElementById('class');
+        const I3 = document.getElementById('phno');
+        const I4 = document.getElementById('address');
+
+
+        const name = I1.value;
+        const className = I2.value;
+        const phno=I3.value;
+        const address=I4.value;
+        console.log(phno);
+
+        
+        try {
+            axios.post('http://localhost:4000/graphql', {
+                query: `
+                        mutation {
+                            addStudent(name: "${name}", className: "${className}", phno: "${phno}",address:"${address}") {
+                                name
+                                className
+                                phno
+                                address
+                            }
+                        }
+                    `
+            });
+
+            // Clear form inputs
+            I1.value='';
+            I2.value='';
+            I3.value='';
+            I4.value='';
+        
+
+           
+        } catch (error) {
+            console.error('Error creating appointment:', error);
+        }
+
+    }
+    async function fetchStudentsByClass(className) {
+            try {
+                const response = await axios.post('http://localhost:4000/graphql', {
+                    query: `
+                query GetStudentsByClass($className: String!) {
+                    studentsByClass(className: $className) {
+                        id
+                        name
+                        className
+                        phno
+                        address
+                    }
+                }
+            `,
+                    variables: { className: className }
+                });
+
+                const students = response.data.data.studentsByClass;
+
+                // Clear the list
+                userlist.innerHTML = '';
+
+                students.forEach(student => {
+                    const li = document.createElement('li');
+                    li.className = "list-group-item";
+                    li.appendChild(document.createTextNode(`Name->${student.name}||Parents no->${student.phno}||Address->${student.address}`));
+                    userlist.appendChild(li);
+                });
+            } catch (error) {
+                console.error('Error fetching students by class:', error);
+            }
+        }
+
+    
+
+    window.addEventListener('DOMContentLoaded', () => {
+        const btn2 = document.getElementById('btn2');
+        const btn3 = document.getElementById('btn3');
+        const btn4 = document.getElementById('btn4');
+        const btn5 = document.getElementById('btn5');
+        const btn6 = document.getElementById('btn6');
+        btn2.style.display='none';
+        btn3.style.display = 'none';
+        btn4.style.display = 'none';
+        btn5.style.display = 'none';
+        btn6.style.display = 'none';
+
+
+        })
+   
+</script>
